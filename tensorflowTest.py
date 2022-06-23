@@ -15,12 +15,12 @@ with tf.device('/gpu:0'):
     print(gpu_a.device, gpu_b.device)
 
 def cpu_run():
-    with tf.device('/cpu:0')
+    with tf.device('/cpu:0'):
         c = tf.matmul(cpu_a, cpu_b)
     return c
 
 def gpu_run():
-    with tf.device('/gpu:0')
+    with tf.device('/gpu:0'):
         c = tf.matmul(gpu_a, gpu_b)
     return c
 
