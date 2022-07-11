@@ -3,9 +3,10 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 # os.system("cls")
 
 import tensorflow as tf
+from tensorflow import keras
 
 n = 10000
-x = tf.random.uniform(
+x_train = tf.random.uniform(
     [n],
     minval=-10,
     maxval=10,
@@ -24,13 +25,24 @@ noise = tf.random.normal(
 true_w = tf.constant(7.6)
 true_b = tf.constant(-3.3)
 
-###################################################
-# Dense: y=wx+b
-rows = n
-net = tf.keras.layers.Dense(1) # 一个隐藏层，一个神经元
-net.build((rows, 1)) # 每个训练数据有1个特征
-print("net.w:", net.kernel) # 参数个数
-print("net.b:", net.bias) # 和Dense数一样
+y_train ＝ true_w * x_train + true_b
+
+model = keras.models.Sequential([
+    keras.layers.Dense(1, activation='relu')
+])
 
 a = tf.range([12])
 print(a)
+
+# loss and optimizer
+loss = keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+optim = keras.optimizers.Adam(lr=0.001)
+metrics = ["accuracy"]
+
+model.compile(loss=loss, optimizer=optim, metrics=metrics)
+
+# training
+batch_size = 64
+epochs = 5
+
+model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, shuffle=True, verbose=2)
