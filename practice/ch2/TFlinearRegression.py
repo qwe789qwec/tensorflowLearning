@@ -25,18 +25,15 @@ noise = tf.random.normal(
 true_w = tf.constant(7.6)
 true_b = tf.constant(-3.3)
 
-y_train ＝ true_w * x_train + true_b
+y_train = x_train * true_w + true_b
 
 model = keras.models.Sequential([
     keras.layers.Dense(1, activation='relu')
 ])
 
-a = tf.range([12])
-print(a)
-
 # loss and optimizer
 loss = keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-optim = keras.optimizers.Adam(lr=0.001)
+optim = keras.optimizers.Adam(learning_rate=0.001)
 metrics = ["accuracy"]
 
 model.compile(loss=loss, optimizer=optim, metrics=metrics)
@@ -45,4 +42,4 @@ model.compile(loss=loss, optimizer=optim, metrics=metrics)
 batch_size = 64
 epochs = 5
 
-model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, shuffle=True, verbose=2)
+model.fit(x_train, y_train, batch_size = batch_size, epochs = epochs, shuffle=True, verbose=2)
