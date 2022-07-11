@@ -1,7 +1,7 @@
 import os
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import datasets, layers, optimizers
+from keras import datasets, layers, optimizers
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.system("cls")
