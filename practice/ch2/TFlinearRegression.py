@@ -1,67 +1,64 @@
-import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-# os.system("cls")
-
 import tensorflow as tf
-from tensorflow import keras
 
-def normalize_fixed(x):
-    current_max = tf.math.reduce_max(
-    x, axis=None, keepdims=False, name=None
-    )
-    current_min = tf.math.reduce_min(
-    x, axis=None, keepdims=False, name=None
-    )
-    # current_min, current_max = tf.expand_dims(current_range[:, 0], 1), tf.expand_dims(current_range[:, 1], 1)
-    # normed_min, normed_max = tf.expand_dims(normed_range[:, 0], 1), tf.expand_dims(normed_range[:, 1], 1)
-    x_normed = (x - current_min) / (current_max - current_min)
-    # x_normed = x_normed * (normed_max - normed_min) + normed_min
-    return x_normed
+# 定義一個隨機數（純量）
+random_float = tf.random.uniform(shape=(10,1)) *10
+X = random_float
+w = tf.constant([6.7])
+b = tf.constant([-3.3])
+Y =  w * X + b
+# Y = tf.matmul(X, w) # 計算矩陣A和B的乘積
+# Y = tf.add(Y, b)    # 計算矩陣A和B的和
 
-n = 1000
-x_train = tf.random.uniform(
-    [n],
-    minval=-10,
-    maxval=10,
-    dtype=tf.dtypes.float32,
-    seed=None,
-    name=None
-)
-noise = tf.random.normal(
-    [n],
-    mean=2.0,
-    stddev=1.5,
-    dtype=tf.dtypes.float32,
-    seed=None,
-    name=None
-)
-true_w = tf.constant(7.6)
-true_b = tf.constant(-3.3)
+# 定義一個有2個元素的零向量
+zero_vector = tf.zeros(shape=(2))
 
-y_train = x_train * true_w + true_b
+# 定義兩個2×2的常量矩陣
+A = tf.constant([[1., 2.], [3., 4.]])
+B = tf.constant([[5., 6.], [7., 8.]])
 
-x_train = normalize_fixed(x_train)
-y_train = normalize_fixed(y_train)
+optimizer = tf.keras.optimizers.SGD(learning_rate=0.01)
+wg = tf.Variable(initial_value=0.)
+bg = tf.Variable(initial_value=0.)
+variables = [wg, bg]
+print(X)
 
-model = keras.models.Sequential([
-    keras.layers.Input(shape=(1,)),
-    keras.layers.Dense(1, activation='relu')
-])
+num_epoch = 1000
+for e in range(num_epoch):
+    # 使用tf.GradientTape()記錄損失函數的梯度資訊
+    with tf.GradientTape() as tape:
+        y_pred = wg * X + bg
+        loss = tf.reduce_sum(tf.square(y_pred - Y)) / 10
+    # TensorFlow自動計算損失函數關於自變數（模型參數）的梯度
+    grads = tape.gradient(loss, variables)
+    # TensorFlow自動根據梯度更新參數
+    optimizer.apply_gradients(grads_and_vars=zip(grads, variables))
 
-# loss and optimizer
-loss = keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-optim = keras.optimizers.SGD(learning_rate=0.01, clipnorm=1.)
-metrics = ["accuracy"]
+print(grads)
+print(wg, bg)
 
-model.compile(loss=loss, optimizer=optim, metrics=metrics)
+class Linear(tf.keras.Model):
+    def __init__(self):
+        super().__init__()
+        self.dense = tf.keras.layers.Dense(
+            units=1,
+            activation=None,
+            kernel_initializer=tf.zeros_initializer(),
+            bias_initializer=tf.zeros_initializer()
+        )
 
-# training
-batch_size = 64
-epochs = 5
+    def call(self, input):
+        output = self.dense(input)
+        return output
 
-model.fit(x_train, y_train, batch_size = batch_size, epochs = epochs, shuffle=True, verbose=2)
 
-c = 0
-for x in model.weights:
-    print(str(c) + str(x))
-    c = c + 1
+# 以下程式碼結構與前一節類似
+model = Linear()
+optimizer = tf.keras.optimizers.SGD(learning_rate=0.01)
+for i in range(1000):
+    with tf.GradientTape() as tape:
+        y_pred = model(X)      # 呼叫模型 y_pred = model(X) 而不是顯式寫出 y_pred = a * X + b
+        loss = tf.reduce_mean(tf.square(y_pred - Y))
+        # loss = tf.reduce_sum(tf.square(y_pred - Y)) / 10
+    grads = tape.gradient(loss, model.variables)    # 使用 model.variables 這一屬性直接獲得模型中的所有變數
+    optimizer.apply_gradients(grads_and_vars=zip(grads, model.variables))
+print(model.variables)
